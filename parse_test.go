@@ -17,7 +17,7 @@ func TestParseTelegram(t *testing.T) {
 	tgram := parseTelegram(lines)
 
 	assert.Equal(t, `ISk5\2MT382-1000`, tgram.Device)
-	assert.Equal(t, 32, len(tgram.Objects))
+	assert.Equal(t, 35, len(tgram.Objects))
 }
 
 func TestParseTelegramLine(t *testing.T) {
@@ -53,6 +53,15 @@ func TestParseTelegramLine(t *testing.T) {
 				Type: OBISTypeEquipmentIdentifier,
 				Values: []TelegramValue{
 					{Value: "4B384547303034303436333935353037"},
+				},
+			},
+		},
+		{
+			line: "0-1:96.1.0(3232323241424344313233343536373839)",
+			result: &TelegramObject{
+				Type: OBISTypeGasEquipmentIdentifier,
+				Values: []TelegramValue{
+					{Value: "3232323241424344313233343536373839"},
 				},
 			},
 		},
@@ -137,23 +146,20 @@ func TestParseTelegramLine(t *testing.T) {
 				},
 			},
 		},
-		/*
-			{
-				line: "1-0:99.97.0(2)(0-0:96.7.19)(101208152415W)(0000000240*s)(101208151004W)(0000000301*s)",
-				result: &TelegramObject{
-					Type: OBISTypePowerFailureEventLog,
-					Values: []TelegramValue{
-						{Value: "2"},
-						{Value: "0-0:96.7.19"},
-						{Value: "101208152415W"},
-						{"0000000240", "s"},
-						{Value: "101208151004W"},
-						{"0000000301", "s"},
-					},
+		{
+			line: "1-0:99.97.0(2)(0-0:96.7.19)(101208152415W)(0000000240*s)(101208151004W)(0000000301*s)",
+			result: &TelegramObject{
+				Type: OBISTypePowerFailureEventLog,
+				Values: []TelegramValue{
+					//{Value: "2"},
+					//{Value: "0-0:96.7.19"},
+					//{Value: "101208152415W"},
+					//{"0000000240", "s"},
+					//{Value: "101208151004W"},
+					{"0000000301", "s"},
 				},
 			},
-		*/
-
+		},
 		{
 			line: "1-0:32.32.0(00002)",
 			result: &TelegramObject{
@@ -322,6 +328,25 @@ func TestParseTelegramLine(t *testing.T) {
 				Type: OBISTypeInstantaneousPowerGeneratedL3,
 				Values: []TelegramValue{
 					{"06.666", "kW"},
+				},
+			},
+		},
+		{
+			line: "0-1:24.1.0(003)",
+			result: &TelegramObject{
+				Type: OBISTypeDeviceType,
+				Values: []TelegramValue{
+					{Value: "003"},
+				},
+			},
+		},
+		{
+			line: "0-1:24.2.1(101209112500W)(12785.123*m3)",
+			result: &TelegramObject{
+				Type: OBISTypeGasDelivered,
+				Values: []TelegramValue{
+					// {"101209112500", "W"},
+					{"12785.123", "m3"},
 				},
 			},
 		},

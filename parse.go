@@ -10,7 +10,7 @@ var (
 	errCOSEMNoMatch     = errors.New("COSEM was no match")
 	telegramHeaderRegex = regexp.MustCompile(`^\/(.+)$`)
 	cosemOBISRegex      = regexp.MustCompile(`^(\d+-\d+:\d+\.\d+\.\d+)(?:\(([^\)]+)\))+$`)
-	cosemUnitRegex      = regexp.MustCompile(`^([\d\.]+)\*(?i)([a-z]+)$`)
+	cosemUnitRegex      = regexp.MustCompile(`^([\d\.]+)\*(?i)([a-z0-9]+)$`)
 )
 
 var (
@@ -47,10 +47,15 @@ var (
 		"1-0:22.7.0":  OBISTypeInstantaneousPowerGeneratedL1,
 		"1-0:42.7.0":  OBISTypeInstantaneousPowerGeneratedL2,
 		"1-0:62.7.0":  OBISTypeInstantaneousPowerGeneratedL3,
+	}
 
-		// In the specification, there are several OBIS types specified for slave
-		// devices as gas meters and such. These have variable OBIS IDs (first 2 digits)
-		// and this requires special treatment in the current way of parsing
+	// In the specification, there are several OBIS types specified for slave
+	// devices as gas meters and such. These have variable OBIS IDs (first 2 digits)
+	// and this requires special treatment in the current way of parsing
+	addOBISTypes = map[string]OBISType{
+		`0-(\d+):96.1.0`: OBISTypeGasEquipmentIdentifier,
+		`0-(\d+):24.1.0`: OBISTypeDeviceType,
+		`0-(\d+):24.2.1`: OBISTypeGasDelivered,
 	}
 )
 
@@ -83,14 +88,24 @@ func parseTelegramLine(line string) (*TelegramObject, error) {
 		return nil, errCOSEMNoMatch
 	}
 
+	var obj *TelegramObject
 	// is this a known COSEM object
-	_, ok := allOBISTypes[matches[1]]
-	if !ok {
-		return nil, errCOSEMNoMatch
+	if _, ok := allOBISTypes[matches[1]]; ok {
+		obj = &TelegramObject{
+			Type: allOBISTypes[matches[1]],
+		}
+	} else {
+		// try to match it to one of the additional types
+		for ptr, obisType := range addOBISTypes {
+			if regexp.MustCompile(ptr).MatchString(matches[1]) {
+				obj = &TelegramObject{Type: obisType}
+				break
+			}
+		}
 	}
 
-	obj := &TelegramObject{
-		Type: allOBISTypes[matches[1]],
+	if obj == nil {
+		return nil, errCOSEMNoMatch
 	}
 
 	for _, v := range matches[2:] {
