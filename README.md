@@ -45,5 +45,7 @@ func main() {
 }
 ```
 
+In the [example/](https://github.com/skoef/gop1/tree/master/example) folder is an example application that collects relevant metrics and offers them over a prometheus-compatible HTTP endpoint for scraping.
+
 ## Acknowledgements
 The [smartmeter](https://github.com/marceldegraaf/smartmeter) project from Marcel de Graaf inspired me to write something like this. I like his work, but was looking for a more pluggable library rather than an actual application. Also there is a whole lot python projects out there with P1 support that gave some insight.
