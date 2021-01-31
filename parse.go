@@ -47,6 +47,12 @@ var (
 		"1-0:22.7.0":  OBISTypeInstantaneousPowerGeneratedL1,
 		"1-0:42.7.0":  OBISTypeInstantaneousPowerGeneratedL2,
 		"1-0:62.7.0":  OBISTypeInstantaneousPowerGeneratedL3,
+
+		"0-0:96.1.4":  OBISTypeVersionInformation,
+		"0-0:96.13.1": OBISTypeConsumerMessageCode,
+		"0-0:96.3.10": OBISTypeBreakerState,
+		"0-0:17.0.0":  OBISTypeLimiterThreshold,
+		"1-0:31.4.0":  OBISTypeFuseThresholdL1,
 	}
 
 	// In the specification, there are several OBIS types specified for slave
@@ -56,6 +62,10 @@ var (
 		`0-(\d+):96.1.0`: OBISTypeGasEquipmentIdentifier,
 		`0-(\d+):24.1.0`: OBISTypeDeviceType,
 		`0-(\d+):24.2.1`: OBISTypeGasDelivered,
+
+		`0-(\d+):96.1.1`: OBISTypeGasEquipmentIdentifier,
+		`0-(\d+):24.4.0`: OBISTypeGasValveState,
+		`0-(\d+):24.2.3`: OBISTypeGasDelivered,
 	}
 )
 
