@@ -9,7 +9,8 @@ import (
 var (
 	errCOSEMNoMatch     = errors.New("COSEM was no match")
 	telegramHeaderRegex = regexp.MustCompile(`^\/(.+)$`)
-	cosemOBISRegex      = regexp.MustCompile(`^(\d+-\d+:\d+\.\d+\.\d+)(?:\(([^\)]+)\))+$`)
+	cosemOBISRegex      = regexp.MustCompile(`^(\d+-\d+:\d+\.\d+\.\d+)([0-9A-Za-z\(\)\*\-\.\:]+)$`)
+	cosemValsRegex      = regexp.MustCompile(`\(([^\)]+)\)`)
 	cosemUnitRegex      = regexp.MustCompile(`^([\d\.]+)\*(?i)([a-z0-9]+)$`)
 )
 
@@ -118,15 +119,20 @@ func parseTelegramLine(line string) (*TelegramObject, error) {
 		return nil, errCOSEMNoMatch
 	}
 
-	for _, v := range matches[2:] {
+	vmatches := cosemValsRegex.FindAllStringSubmatch(matches[2], -1)
+	if len(vmatches) == 0 {
+		return nil, errCOSEMNoMatch
+	}
+
+	for _, v := range vmatches {
 		ov := TelegramValue{}
 		// check if the unit of the value is specified as well
-		match := cosemUnitRegex.FindStringSubmatch(v)
+		match := cosemUnitRegex.FindStringSubmatch(v[1])
 		if len(match) > 1 {
 			ov.Value = match[1]
 			ov.Unit = match[2]
 		} else {
-			ov.Value = v
+			ov.Value = v[1]
 		}
 
 		obj.Values = append(obj.Values, ov)

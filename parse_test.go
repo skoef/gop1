@@ -151,11 +151,11 @@ func TestParseTelegramLine(t *testing.T) {
 			result: &TelegramObject{
 				Type: OBISTypePowerFailureEventLog,
 				Values: []TelegramValue{
-					//{Value: "2"},
-					//{Value: "0-0:96.7.19"},
-					//{Value: "101208152415W"},
-					//{"0000000240", "s"},
-					//{Value: "101208151004W"},
+					{Value: "2"},
+					{Value: "0-0:96.7.19"},
+					{Value: "101208152415W"},
+					{"0000000240", "s"},
+					{Value: "101208151004W"},
 					{"0000000301", "s"},
 				},
 			},
@@ -345,7 +345,7 @@ func TestParseTelegramLine(t *testing.T) {
 			result: &TelegramObject{
 				Type: OBISTypeGasDelivered,
 				Values: []TelegramValue{
-					// {Value: "101209112500W"},
+					{Value: "101209112500W"},
 					{"12785.123", "m3"},
 				},
 			},
@@ -418,7 +418,7 @@ func TestParseTelegramLine(t *testing.T) {
 			result: &TelegramObject{
 				Type: OBISTypeGasDelivered,
 				Values: []TelegramValue{
-					// {Value: "101209112500W"},
+					{Value: "101209112500W"},
 					{"12785.123", "m3"},
 				},
 			},
