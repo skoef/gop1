@@ -147,7 +147,7 @@ func main() {
 					electricityGenerated.With(prometheus.Labels{"tariff": "2"}).Set(floatValue(obj.Values[0].Value))
 
 				case gop1.OBISTypeGasDelivered:
-					gasConsumed.Set(floatValue(obj.Values[0].Value))
+					gasConsumed.Set(floatValue(obj.Values[1].Value))
 				}
 			}
 		}

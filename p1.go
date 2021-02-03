@@ -144,4 +144,9 @@ const (
 	OBISTypeInstantaneousPowerGeneratedL2 = "Instantaneous active power generated on phase L2"
 	OBISTypeInstantaneousPowerGeneratedL3 = "Instantaneous active power generated on phase L3"
 	OBISTypeGasDelivered                  = "Actual gas delivered"
+	OBISTypeConsumerMessageCode           = "Consumer message code"
+	OBISTypeBreakerState                  = "Breaker state"
+	OBISTypeLimiterThreshold              = "Electricity limiter threshold"
+	OBISTypeFuseThresholdL1               = "Fuse threshold on phase L1"
+	OBISTypeGasValveState                 = "Gas valve state"
 )

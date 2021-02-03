@@ -9,7 +9,8 @@ import (
 var (
 	errCOSEMNoMatch     = errors.New("COSEM was no match")
 	telegramHeaderRegex = regexp.MustCompile(`^\/(.+)$`)
-	cosemOBISRegex      = regexp.MustCompile(`^(\d+-\d+:\d+\.\d+\.\d+)(?:\(([^\)]+)\))+$`)
+	cosemOBISRegex      = regexp.MustCompile(`^(\d+-\d+:\d+\.\d+\.\d+)([0-9A-Za-z\(\)\*\-\.\:]+)$`)
+	cosemValsRegex      = regexp.MustCompile(`\(([^\)]+)\)`)
 	cosemUnitRegex      = regexp.MustCompile(`^([\d\.]+)\*(?i)([a-z0-9]+)$`)
 )
 
@@ -47,6 +48,12 @@ var (
 		"1-0:22.7.0":  OBISTypeInstantaneousPowerGeneratedL1,
 		"1-0:42.7.0":  OBISTypeInstantaneousPowerGeneratedL2,
 		"1-0:62.7.0":  OBISTypeInstantaneousPowerGeneratedL3,
+
+		"0-0:96.1.4":  OBISTypeVersionInformation,
+		"0-0:96.13.1": OBISTypeConsumerMessageCode,
+		"0-0:96.3.10": OBISTypeBreakerState,
+		"0-0:17.0.0":  OBISTypeLimiterThreshold,
+		"1-0:31.4.0":  OBISTypeFuseThresholdL1,
 	}
 
 	// In the specification, there are several OBIS types specified for slave
@@ -56,6 +63,10 @@ var (
 		`0-(\d+):96.1.0`: OBISTypeGasEquipmentIdentifier,
 		`0-(\d+):24.1.0`: OBISTypeDeviceType,
 		`0-(\d+):24.2.1`: OBISTypeGasDelivered,
+
+		`0-(\d+):96.1.1`: OBISTypeGasEquipmentIdentifier,
+		`0-(\d+):24.4.0`: OBISTypeGasValveState,
+		`0-(\d+):24.2.3`: OBISTypeGasDelivered,
 	}
 )
 
@@ -108,15 +119,20 @@ func parseTelegramLine(line string) (*TelegramObject, error) {
 		return nil, errCOSEMNoMatch
 	}
 
-	for _, v := range matches[2:] {
+	vmatches := cosemValsRegex.FindAllStringSubmatch(matches[2], -1)
+	if len(vmatches) == 0 {
+		return nil, errCOSEMNoMatch
+	}
+
+	for _, v := range vmatches {
 		ov := TelegramValue{}
 		// check if the unit of the value is specified as well
-		match := cosemUnitRegex.FindStringSubmatch(v)
+		match := cosemUnitRegex.FindStringSubmatch(v[1])
 		if len(match) > 1 {
 			ov.Value = match[1]
 			ov.Unit = match[2]
 		} else {
-			ov.Value = v
+			ov.Value = v[1]
 		}
 
 		obj.Values = append(obj.Values, ov)

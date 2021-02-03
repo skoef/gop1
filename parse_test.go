@@ -10,14 +10,33 @@ import (
 )
 
 func TestParseTelegram(t *testing.T) {
-	fixture, err := ioutil.ReadFile("testdata/parser/output")
-	require.NoError(t, err)
+	tests := []struct {
+		file    string
+		device  string
+		objects int
+	}{
+		{
+			file:    "testdata/parser/output0",
+			device:  `ISk5\2MT382-1000`,
+			objects: 35,
+		},
+		{
+			file:    "testdata/parser/output1",
+			device:  `FLU5\493523491_A`,
+			objects: 24,
+		},
+	}
 
-	lines := strings.Split(string(fixture), "\n")
-	tgram := parseTelegram(lines)
+	for _, test := range tests {
+		fixture, err := ioutil.ReadFile(test.file)
+		require.NoError(t, err)
 
-	assert.Equal(t, `ISk5\2MT382-1000`, tgram.Device)
-	assert.Equal(t, 35, len(tgram.Objects))
+		lines := strings.Split(string(fixture), "\n")
+		tgram := parseTelegram(lines)
+
+		assert.Equal(t, test.device, tgram.Device)
+		assert.Equal(t, test.objects, len(tgram.Objects))
+	}
 }
 
 func TestParseTelegramLine(t *testing.T) {
@@ -151,11 +170,11 @@ func TestParseTelegramLine(t *testing.T) {
 			result: &TelegramObject{
 				Type: OBISTypePowerFailureEventLog,
 				Values: []TelegramValue{
-					//{Value: "2"},
-					//{Value: "0-0:96.7.19"},
-					//{Value: "101208152415W"},
-					//{"0000000240", "s"},
-					//{Value: "101208151004W"},
+					{Value: "2"},
+					{Value: "0-0:96.7.19"},
+					{Value: "101208152415W"},
+					{"0000000240", "s"},
+					{Value: "101208151004W"},
 					{"0000000301", "s"},
 				},
 			},
@@ -345,7 +364,80 @@ func TestParseTelegramLine(t *testing.T) {
 			result: &TelegramObject{
 				Type: OBISTypeGasDelivered,
 				Values: []TelegramValue{
-					// {"101209112500", "W"},
+					{Value: "101209112500W"},
+					{"12785.123", "m3"},
+				},
+			},
+		},
+		{
+			line: "0-0:96.1.4(50)",
+			result: &TelegramObject{
+				Type: OBISTypeVersionInformation,
+				Values: []TelegramValue{
+					{Value: "50"},
+				},
+			},
+		},
+		{
+			line: "0-0:96.13.1(IF3BIEL7RUE3HOHLA4TIEBOODUNG4ZIUCU8IEYEI4IERIEBEI5QUAINGUEKOOCHOOWAHCAI1HAWAIPHEO2CAO8MA3OFEEP8CI6OHQU6PAIJIENGEEYOOCHIE0CHOR4CO)",
+			result: &TelegramObject{
+				Type: OBISTypeConsumerMessageCode,
+				Values: []TelegramValue{
+					{Value: "IF3BIEL7RUE3HOHLA4TIEBOODUNG4ZIUCU8IEYEI4IERIEBEI5QUAINGUEKOOCHOOWAHCAI1HAWAIPHEO2CAO8MA3OFEEP8CI6OHQU6PAIJIENGEEYOOCHIE0CHOR4CO"},
+				},
+			},
+		},
+		{
+			line: "0-0:96.3.10(1)",
+			result: &TelegramObject{
+				Type: OBISTypeBreakerState,
+				Values: []TelegramValue{
+					{Value: "1"},
+				},
+			},
+		},
+		{
+			line: "0-0:17.0.0(999.9*kW)",
+			result: &TelegramObject{
+				Type: OBISTypeLimiterThreshold,
+				Values: []TelegramValue{
+					{"999.9", "kW"},
+				},
+			},
+		},
+		{
+			line: "1-0:31.4.0(999*A)",
+			result: &TelegramObject{
+				Type: OBISTypeFuseThresholdL1,
+				Values: []TelegramValue{
+					{"999", "A"},
+				},
+			},
+		},
+		{
+			line: "0-1:96.1.1(3232323241424344313233343536373839)",
+			result: &TelegramObject{
+				Type: OBISTypeGasEquipmentIdentifier,
+				Values: []TelegramValue{
+					{Value: "3232323241424344313233343536373839"},
+				},
+			},
+		},
+		{
+			line: "0-1:24.4.0(1)",
+			result: &TelegramObject{
+				Type: OBISTypeGasValveState,
+				Values: []TelegramValue{
+					{Value: "1"},
+				},
+			},
+		},
+		{
+			line: "0-1:24.2.3(101209112500W)(12785.123*m3)",
+			result: &TelegramObject{
+				Type: OBISTypeGasDelivered,
+				Values: []TelegramValue{
+					{Value: "101209112500W"},
 					{"12785.123", "m3"},
 				},
 			},
