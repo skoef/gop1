@@ -2,7 +2,7 @@
 
 # Golang P1 protocol library
 
-This is a golang library to read P1 data from a so called *smart* energy meter, used primarily in The Netherlands. P1 is the protocol Dutch power grid companies designed together and is described on [netbeheernederland.nl](https://www.netbeheernederland.nl/_upload/Files/Slimme_meter_15_a727fce1f1.pdf).
+This is a golang library to read P1 data from a so called *smart* energy meter, used primarily in The Netherlands. P1 is the protocol Dutch power grid companies designed together and is described on [netbeheernederland.nl](https://www.netbeheernederland.nl/_upload/Files/Slimme_meter_15_a727fce1f1.pdf). The smart meters which are being deployed in Belgium implement the same protocol, but some additional data types were defined by the power grid companies. These types are defined in the [e-MUCS H](https://www.fluvius.be/sites/fluvius/files/2019-12/e-mucs_h_ed_1_3.pdf) specification.
 
 To read P1 data, you'll need something like a P1-to-USB cable. The P1 port is essentially a serial port where data (a so called P1 telegram) is dumped every second.
 
