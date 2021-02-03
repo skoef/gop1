@@ -10,14 +10,33 @@ import (
 )
 
 func TestParseTelegram(t *testing.T) {
-	fixture, err := ioutil.ReadFile("testdata/parser/output")
-	require.NoError(t, err)
+	tests := []struct {
+		file    string
+		device  string
+		objects int
+	}{
+		{
+			file:    "testdata/parser/output0",
+			device:  `ISk5\2MT382-1000`,
+			objects: 35,
+		},
+		{
+			file:    "testdata/parser/output1",
+			device:  `FLU5\493523491_A`,
+			objects: 24,
+		},
+	}
 
-	lines := strings.Split(string(fixture), "\n")
-	tgram := parseTelegram(lines)
+	for _, test := range tests {
+		fixture, err := ioutil.ReadFile(test.file)
+		require.NoError(t, err)
 
-	assert.Equal(t, `ISk5\2MT382-1000`, tgram.Device)
-	assert.Equal(t, 35, len(tgram.Objects))
+		lines := strings.Split(string(fixture), "\n")
+		tgram := parseTelegram(lines)
+
+		assert.Equal(t, test.device, tgram.Device)
+		assert.Equal(t, test.objects, len(tgram.Objects))
+	}
 }
 
 func TestParseTelegramLine(t *testing.T) {
