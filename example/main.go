@@ -37,11 +37,11 @@ var (
 	})
 	electricityConsumed = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "electricity_consumed",
-		Help: "Electricity consumed per tariff in kWh",
+		Help: "Electricity consumed per tariff in Wh",
 	}, []string{"tariff"})
 	electricityGenerated = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "electricity_generated",
-		Help: "Electricity generated per tariff in kWh",
+		Help: "Electricity generated per tariff in Wh",
 	}, []string{"tariff"})
 	gasConsumed = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "gas_consumed",
@@ -65,90 +65,87 @@ func init() {
 
 func main() {
 
-	var deviceName, metricsPath string
-	var metricsPort int
-
-	flag.StringVar(&deviceName, "device", "/dev/ttyUSB0", "Serial device towards P1 port")
-	flag.IntVar(&metricsPort, "metrics-port", 2112, "Prometheus metrics port")
-	flag.StringVar(&metricsPath, "metrics-path", "/metrics", "Prometheus metrics path")
+	var (
+		deviceName  = flag.String("device", "/dev/ttyUSB0", "Serial device towards P1 port")
+		metricsPort = flag.Int("metrics-port", 2112, "Prometheus metrics port")
+		metricsPath = flag.String("metrics-path", "/metrics", "Prometheus metrics path")
+		debug       = flag.Bool("debug", false, "Enable debug logging")
+	)
 
 	flag.Parse()
+	if *debug {
+		log.SetLevel(log.DebugLevel)
+	}
 
-	if deviceName == "" {
+	if *deviceName == "" {
 		flag.Usage()
 		os.Exit(2)
 	}
 
 	// set up prometheus metrics
-	http.Handle(metricsPath, promhttp.Handler())
-	go http.ListenAndServe(fmt.Sprintf(":%d", metricsPort), nil)
+	http.Handle(*metricsPath, promhttp.Handler())
+	go http.ListenAndServe(fmt.Sprintf(":%d", *metricsPort), nil)
 
 	// open connection to serial port
 	p1, err := gop1.New(gop1.P1Config{
-		USBDevice: deviceName,
+		USBDevice: *deviceName,
 	})
 	if err != nil {
-		log.WithFields(log.Fields{
-			"error":  err.Error(),
-			"device": deviceName,
-		}).Error("failed to open serial device")
+		log.WithError(err).WithField("deviceName", *deviceName).Error("failed to open serial device")
+
 		return
 	}
 
 	// start reading from P1 port
 	p1.Start()
 
-	for {
+	for tgram := range p1.Incoming {
+		for _, obj := range tgram.Objects {
+			switch obj.Type {
 
-		select {
-		case tgram := <-p1.Incoming:
-			for _, obj := range tgram.Objects {
-				switch obj.Type {
+			case gop1.OBISTypeInstantaneousPowerDeliveredL1:
+				powerConsumed.With(prometheus.Labels{"phase": "l1"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousPowerDeliveredL2:
+				powerConsumed.With(prometheus.Labels{"phase": "l2"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousPowerDeliveredL3:
+				powerConsumed.With(prometheus.Labels{"phase": "l3"}).Set(floatValue(obj.Values[0].Value))
 
-				case gop1.OBISTypeInstantaneousPowerDeliveredL1:
-					powerConsumed.With(prometheus.Labels{"phase": "l1"}).Set((floatValue(obj.Values[0].Value) * 1000))
-				case gop1.OBISTypeInstantaneousPowerDeliveredL2:
-					powerConsumed.With(prometheus.Labels{"phase": "l2"}).Set((floatValue(obj.Values[0].Value) * 1000))
-				case gop1.OBISTypeInstantaneousPowerDeliveredL3:
-					powerConsumed.With(prometheus.Labels{"phase": "l3"}).Set((floatValue(obj.Values[0].Value) * 1000))
+			case gop1.OBISTypeInstantaneousPowerGeneratedL1:
+				powerGenerated.With(prometheus.Labels{"phase": "l1"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousPowerGeneratedL2:
+				powerGenerated.With(prometheus.Labels{"phase": "l2"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousPowerGeneratedL3:
+				powerGenerated.With(prometheus.Labels{"phase": "l3"}).Set(floatValue(obj.Values[0].Value))
 
-				case gop1.OBISTypeInstantaneousPowerGeneratedL1:
-					powerGenerated.With(prometheus.Labels{"phase": "l1"}).Set((floatValue(obj.Values[0].Value) * 1000))
-				case gop1.OBISTypeInstantaneousPowerGeneratedL2:
-					powerGenerated.With(prometheus.Labels{"phase": "l2"}).Set((floatValue(obj.Values[0].Value) * 1000))
-				case gop1.OBISTypeInstantaneousPowerGeneratedL3:
-					powerGenerated.With(prometheus.Labels{"phase": "l3"}).Set((floatValue(obj.Values[0].Value) * 1000))
+			case gop1.OBISTypeInstantaneousCurrentL1:
+				currentConsumed.With(prometheus.Labels{"phase": "l1"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousCurrentL2:
+				currentConsumed.With(prometheus.Labels{"phase": "l2"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousCurrentL3:
+				currentConsumed.With(prometheus.Labels{"phase": "l3"}).Set(floatValue(obj.Values[0].Value))
 
-				case gop1.OBISTypeInstantaneousCurrentL1:
-					currentConsumed.With(prometheus.Labels{"phase": "l1"}).Set(floatValue(obj.Values[0].Value))
-				case gop1.OBISTypeInstantaneousCurrentL2:
-					currentConsumed.With(prometheus.Labels{"phase": "l2"}).Set(floatValue(obj.Values[0].Value))
-				case gop1.OBISTypeInstantaneousCurrentL3:
-					currentConsumed.With(prometheus.Labels{"phase": "l3"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousVoltageL1:
+				voltageConsumed.With(prometheus.Labels{"phase": "l1"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousVoltageL2:
+				voltageConsumed.With(prometheus.Labels{"phase": "l2"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeInstantaneousVoltageL3:
+				voltageConsumed.With(prometheus.Labels{"phase": "l3"}).Set(floatValue(obj.Values[0].Value))
 
-				case gop1.OBISTypeInstantaneousVoltageL1:
-					voltageConsumed.With(prometheus.Labels{"phase": "l1"}).Set(floatValue(obj.Values[0].Value))
-				case gop1.OBISTypeInstantaneousVoltageL2:
-					voltageConsumed.With(prometheus.Labels{"phase": "l2"}).Set(floatValue(obj.Values[0].Value))
-				case gop1.OBISTypeInstantaneousVoltageL3:
-					voltageConsumed.With(prometheus.Labels{"phase": "l3"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeElectricityTariffIndicator:
+				tariffIndicator.Set(floatValue(obj.Values[0].Value))
 
-				case gop1.OBISTypeElectricityTariffIndicator:
-					tariffIndicator.Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeElectricityDeliveredTariff1:
+				electricityConsumed.With(prometheus.Labels{"tariff": "1"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeElectricityDeliveredTariff2:
+				electricityConsumed.With(prometheus.Labels{"tariff": "2"}).Set(floatValue(obj.Values[0].Value))
 
-				case gop1.OBISTypeElectricityDeliveredTariff1:
-					electricityConsumed.With(prometheus.Labels{"tariff": "1"}).Set(floatValue(obj.Values[0].Value))
-				case gop1.OBISTypeElectricityDeliveredTariff2:
-					electricityConsumed.With(prometheus.Labels{"tariff": "2"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeElectricityGeneratedTariff1:
+				electricityGenerated.With(prometheus.Labels{"tariff": "1"}).Set(floatValue(obj.Values[0].Value))
+			case gop1.OBISTypeElectricityGeneratedTariff2:
+				electricityGenerated.With(prometheus.Labels{"tariff": "2"}).Set(floatValue(obj.Values[0].Value))
 
-				case gop1.OBISTypeElectricityGeneratedTariff1:
-					electricityGenerated.With(prometheus.Labels{"tariff": "1"}).Set(floatValue(obj.Values[0].Value))
-				case gop1.OBISTypeElectricityGeneratedTariff2:
-					electricityGenerated.With(prometheus.Labels{"tariff": "2"}).Set(floatValue(obj.Values[0].Value))
-
-				case gop1.OBISTypeGasDelivered:
-					gasConsumed.Set(floatValue(obj.Values[1].Value))
-				}
+			case gop1.OBISTypeGasDelivered:
+				gasConsumed.Set(floatValue(obj.Values[0].Value))
 			}
 		}
 	}
