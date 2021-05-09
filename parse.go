@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+const (
+	cosemMatchLength = 3
+)
+
 var (
 	errCOSEMNoMatch     = errors.New("COSEM was no match")
 	telegramHeaderRegex = regexp.MustCompile(`^\/(.+)$`)
@@ -79,6 +83,7 @@ func parseTelegram(lines []string) *Telegram {
 		match := telegramHeaderRegex.FindStringSubmatch(l)
 		if len(match) > 0 {
 			tgram.Device = match[1]
+
 			continue
 		}
 
@@ -95,21 +100,20 @@ func parseTelegram(lines []string) *Telegram {
 
 func parseTelegramLine(line string) (*TelegramObject, error) {
 	matches := cosemOBISRegex.FindStringSubmatch(line)
-	if len(matches) != 3 {
+	if len(matches) != cosemMatchLength {
 		return nil, errCOSEMNoMatch
 	}
 
 	var obj *TelegramObject
 	// is this a known COSEM object
-	if _, ok := allOBISTypes[matches[1]]; ok {
-		obj = &TelegramObject{
-			Type: allOBISTypes[matches[1]],
-		}
+	if t, ok := allOBISTypes[matches[1]]; ok {
+		obj = &TelegramObject{Type: t}
 	} else {
 		// try to match it to one of the additional types
 		for ptr, obisType := range addOBISTypes {
 			if regexp.MustCompile(ptr).MatchString(matches[1]) {
 				obj = &TelegramObject{Type: obisType}
+
 				break
 			}
 		}
