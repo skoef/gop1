@@ -12,7 +12,6 @@ import (
 // parsed into structured data
 type P1 struct {
 	serialDevice *serial.Port
-	stopped      chan (interface{})
 	Incoming     chan (*Telegram)
 }
 

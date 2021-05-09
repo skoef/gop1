@@ -29,16 +29,12 @@ func main() {
 	// this will send new telegrams to the channel p1.Incoming
 	p1.Start()
 
-	for {
-		select {
-		// get new telegram
-		case telegram := <-p1.Incoming:
-			// loop over the objects in the telegram to find types we're interested in
-			for _, obj := range telegram.Objects {
-				switch obj.Type {
-				case gop1.OBISTypeInstantaneousPowerDeliveredL1:
-					fmt.Printf("actual power usage: %s %s\n", obj.Values[0].Value, obj.Values[0].Unit)
-				}
+	for telegram := range p1.Incoming {
+		// loop over the objects in the telegram to find types we're interested in
+		for _, obj := range telegram.Objects {
+			switch obj.Type {
+			case gop1.OBISTypeInstantaneousPowerDeliveredL1:
+				fmt.Printf("actual power usage: %s %s\n", obj.Values[0].Value, obj.Values[0].Unit)
 			}
 		}
 	}
