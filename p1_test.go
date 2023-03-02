@@ -20,9 +20,10 @@ func TestReadData(t *testing.T) {
 	}
 
 	go p1.readData()
-	telegrams := 0
-	for range p1.Incoming {
-		telegrams++
+	telegrams := make([]*Telegram, 0)
+	for telegram := range p1.Incoming {
+		telegrams = append(telegrams, telegram)
 	}
-	assert.Equal(t, 500, telegrams)
+	assert.Equal(t, 1, len(telegrams))
+	assert.Equal(t, 35, len(telegrams[0].Objects))
 }
