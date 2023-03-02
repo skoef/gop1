@@ -2,6 +2,7 @@ package gop1
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"strings"
 	"time"
@@ -71,6 +72,10 @@ func (p *P1) readData() {
 		// this CRC code starts with ! so let's read until we receive that char
 		message, err := reader.ReadString(crcDelimiter)
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+
 			continue
 		}
 
@@ -86,6 +91,8 @@ func (p *P1) readData() {
 		lines := strings.Split(message, "\n")
 		p.Incoming <- parseTelegram(lines)
 	}
+
+	close(p.Incoming)
 }
 
 // Telegram represents the structured data for one complete dump (or telegram)
