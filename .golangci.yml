@@ -9,7 +9,6 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - deadcode
     - depguard
     - dogsled
     - dupl
@@ -28,14 +27,12 @@ linters:
     - gofmt
     - goheader
     - goimports
-    - golint
     - gomnd
     - gomoddirectives
     - gomodguard
     - goprintffuncname
     - gosimple
     - govet
-    - ifshort
     - importas
     - ineffassign
     - makezero
@@ -48,10 +45,7 @@ linters:
     - prealloc
     - predeclared
     - revive
-    - rowserrcheck
-    - sqlclosecheck
     - staticcheck
-    - structcheck
     - stylecheck
     - thelper
     - tparallel
@@ -59,6 +53,4 @@ linters:
     - unconvert
     - unparam
     - unused
-    - varcheck
-    - wastedassign
     - whitespace
