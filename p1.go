@@ -2,17 +2,24 @@ package gop1
 
 import (
 	"bufio"
+	"io"
 	"strings"
 	"time"
 
 	"github.com/tarm/serial"
 )
 
+const (
+	defaultBaudrate = 115200
+	defaultTimeout  = 500
+	crcDelimiter    = '\x21' // hex char code for !
+)
+
 // P1 allows you to easily read from a P1-compatible serial device. The output is
 // parsed into structured data
 type P1 struct {
-	serialDevice *serial.Port
-	Incoming     chan (*Telegram)
+	serialDevice io.Reader
+	Incoming     chan *Telegram
 }
 
 // P1Config is the configuration to create a new P1 object with
@@ -26,11 +33,11 @@ type P1Config struct {
 // wrong initialising the serial object
 func New(config P1Config) (*P1, error) {
 	if config.Baudrate <= 0 {
-		config.Baudrate = 115200
+		config.Baudrate = defaultBaudrate
 	}
 
 	if config.Timeout <= 0 {
-		config.Timeout = 500
+		config.Timeout = defaultTimeout
 	}
 
 	serialConfig := &serial.Config{
@@ -62,7 +69,7 @@ func (p *P1) readData() {
 	for {
 		// telegram data is suffixed with a CRC code
 		// this CRC code starts with ! so let's read until we receive that char
-		message, err := reader.ReadString('\x21') // hex char code for !
+		message, err := reader.ReadString(crcDelimiter)
 		if err != nil {
 			continue
 		}
