@@ -1,7 +1,7 @@
 package gop1
 
 import (
-	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -28,7 +28,7 @@ func TestParseTelegram(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		fixture, err := ioutil.ReadFile(test.file)
+		fixture, err := os.ReadFile(test.file)
 		require.NoError(t, err)
 
 		lines := strings.Split(string(fixture), "\n")

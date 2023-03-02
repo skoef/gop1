@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/skoef/gop1)](https://goreportcard.com/report/github.com/skoef/gop1) [![Documentation](https://godoc.org/github.com/skoef/gop1?status.svg)](http://godoc.org/github.com/skoef/gop1)
+[![Go Report Card](https://goreportcard.com/badge/github.com/skoef/gop1)](https://goreportcard.com/report/github.com/skoef/gop1) [![Documentation](https://godocs.io/github.com/skoef/gop1?status.svg)](http://godocs.io/github.com/skoef/gop1)
 
 # Golang P1 protocol library
 
