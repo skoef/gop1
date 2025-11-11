@@ -10,6 +10,8 @@ import (
 )
 
 func TestReadData(t *testing.T) {
+	t.Parallel()
+
 	testdata, err := os.ReadFile("testdata/parser/output0")
 	require.NoError(t, err)
 
@@ -20,10 +22,12 @@ func TestReadData(t *testing.T) {
 	}
 
 	go p1.readData()
+
 	telegrams := make([]*Telegram, 0)
 	for telegram := range p1.Incoming {
 		telegrams = append(telegrams, telegram)
 	}
-	assert.Equal(t, 1, len(telegrams))
-	assert.Equal(t, 35, len(telegrams[0].Objects))
+
+	assert.Len(t, telegrams, 1)
+	assert.Len(t, telegrams[0].Objects, 35)
 }

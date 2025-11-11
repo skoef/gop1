@@ -12,10 +12,10 @@ const (
 
 var (
 	errCOSEMNoMatch     = errors.New("COSEM was no match")
-	telegramHeaderRegex = regexp.MustCompile(`^\/(.+)$`)
-	cosemOBISRegex      = regexp.MustCompile(`^(\d+-\d+:\d+\.\d+\.\d+)([0-9A-Za-z\(\)\*\-\.\:]+)$`)
+	telegramHeaderRegex = regexp.MustCompile(`^/(.+)$`)
+	cosemOBISRegex      = regexp.MustCompile(`^(\d+-\d+:\d+\.\d+\.\d+)([0-9A-Za-z\(\)\*\-.:]+)$`)
 	cosemValsRegex      = regexp.MustCompile(`\(([^\)]+)\)`)
-	cosemUnitRegex      = regexp.MustCompile(`^([\d\.]+)\*(?i)([a-z0-9]+)$`)
+	cosemUnitRegex      = regexp.MustCompile(`^([\d.]+)\*(?i)([a-z0-9]+)$`)
 )
 
 var (

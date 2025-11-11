@@ -1,3 +1,4 @@
+// Package gop1 handles parsing P1 meter data
 package gop1
 
 import (
@@ -31,7 +32,7 @@ type P1Config struct {
 }
 
 // New returns a P1 object with given configuration or error when something went
-// wrong initialising the serial object
+// wrong initializing the serial object
 func New(config P1Config) (*P1, error) {
 	if config.Baudrate <= 0 {
 		config.Baudrate = defaultBaudrate
@@ -78,15 +79,6 @@ func (p *P1) readData() {
 
 			continue
 		}
-
-		/*
-			// we're currently not processing the CRC itself, but let's read that as well
-			// from the CRC, we assume the first carriage return is the end of the CRC
-			_, err = reader.ReadString('\x0d') // hex char for CR
-			if err != nil {
-				continue
-			}
-		*/
 
 		lines := strings.Split(message, "\n")
 		p.Incoming <- parseTelegram(lines)
