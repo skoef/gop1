@@ -1,6 +1,7 @@
 package gop1
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -10,6 +11,8 @@ import (
 )
 
 func TestParseTelegram(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		file    string
 		device  string
@@ -27,19 +30,25 @@ func TestParseTelegram(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		fixture, err := os.ReadFile(test.file)
-		require.NoError(t, err)
+	for i, test := range tests {
+		t.Run(fmt.Sprintf("parse_%d", i), func(t *testing.T) {
+			t.Parallel()
 
-		lines := strings.Split(string(fixture), "\n")
-		tgram := parseTelegram(lines)
+			fixture, err := os.ReadFile(test.file)
+			require.NoError(t, err)
 
-		assert.Equal(t, test.device, tgram.Device)
-		assert.Equal(t, test.objects, len(tgram.Objects))
+			lines := strings.Split(string(fixture), "\n")
+			tgram := parseTelegram(lines)
+
+			assert.Equal(t, test.device, tgram.Device)
+			assert.Len(t, tgram.Objects, test.objects)
+		})
 	}
 }
 
 func TestParseTelegramLine(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		line        string
 		result      *TelegramObject
@@ -238,7 +247,9 @@ func TestParseTelegramLine(t *testing.T) {
 			result: &TelegramObject{
 				Type: OBISTypeTextMessage,
 				Values: []TelegramValue{
-					{Value: "303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F"},
+					{
+						Value: "303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F303132333435363738393A3B3C3D3E3F",
+					},
 				},
 			},
 		},
@@ -444,13 +455,18 @@ func TestParseTelegramLine(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
-		obj, err := parseTelegramLine(test.line)
-		if test.expectError {
-			require.Error(t, err)
-		} else {
-			require.NoError(t, err)
-		}
-		assert.Equal(t, test.result, obj)
+	for i, test := range tests {
+		t.Run(fmt.Sprintf("parse_%d", i), func(t *testing.T) {
+			t.Parallel()
+
+			obj, err := parseTelegramLine(test.line)
+			if test.expectError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			assert.Equal(t, test.result, obj)
+		})
 	}
 }
